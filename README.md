@@ -1,4 +1,4 @@
-# Wishing Star
+# CLP Notification Monitor
 
 CLP Log Ingestion Notification Monitor.
 

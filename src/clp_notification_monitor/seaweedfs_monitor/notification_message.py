@@ -1,3 +1,4 @@
+from pathlib import PurePath
 from typing import List
 
 
@@ -33,3 +34,4 @@ class S3NotificationMessage:
         self.s3_path: str = s3_path
         self.fid_list: List[SeaweedFID] = fid_list
         self.file_size: int = file_size
+        self.s3_full_path: PurePath = PurePath(s3_bucket) / PurePath(s3_path)

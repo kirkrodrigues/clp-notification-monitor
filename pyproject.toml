@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools >= 61.0", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clp_notification_monitor"
+version = "0.0.0"
+readme = "README.md"
+requires-python = ">=3.7"
+authors = [
+    { name="zhihao lin", email="lin.zhihao@yscope.com" },
+]
+description = "CLP Notification Monitor for Log Ingestion"
+dependencies = [
+    "grpcio >= 1.57.0",
+    "grpcio-tools >= 1.57.0",
+    "typing-extensions >= 4.1.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black >= 22.10.0",
+    "docformatter >= 1.6.3",
+    "mypy >= 0.982",
+    "ruff >= 0.0.275",
+]
+
+[tool.black]
+exclude = "src/clp_notification_monitor/seaweedfs_monitor/grpc/[^\\/]+\\.py$"
+line-length = 100
+target-version = ["py311"]
+color = true
+preview = true
+
+[tool.docformatter]
+exclude = "src/clp_notification_monitor/seaweedfs_monitor/grpc/[^\\/]+\\.py$"
+make-summary-multi-line = true
+pre-summary-newline = true
+recursive = true
+wrap-summaries = 80
+wrap-descriptions = 80
+
+[tool.mypy]
+exclude = [
+    "src/clp_notification_monitor/seaweedfs_monitor/grpc/[^\\/]+\\.py$",
+    "src/clp_notification_monitor/seaweedfs_monitor/seaweedfs_grpc_client.py",
+]
+ignore_missing_imports = true
+strict = true
+pretty = true
+
+[tool.ruff]
+line-length = 100
+select = ["E", "I", "F"]
+exclude = [
+    "src/clp_notification_monitor/seaweedfs_monitor/grpc"
+]
+
+[tool.ruff.isort]
+order-by-type = false
+

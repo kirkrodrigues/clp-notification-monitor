@@ -13,13 +13,13 @@ class CompressionBuffer:
     def __init__(
         self,
         logger: Logger,
-        jobs_collection: Collection,
+        jobs_collection: Collection,  # type: ignore
         s3_endpoint: str,
         max_buffer_size: int,
         min_refresh_period: int,
     ):
         self._logger: Logger = logger
-        self._jobs_collection: Collection = jobs_collection
+        self._jobs_collection: Collection = jobs_collection  # type: ignore
         self._endpoint_url: str = s3_endpoint
         self._path_prefixes: List[Dict[str, str]] = []
 

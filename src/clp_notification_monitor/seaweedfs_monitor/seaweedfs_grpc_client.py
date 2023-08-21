@@ -64,15 +64,15 @@ class SeaweedFSClient(SeaweedFilerServicer):
         should be stored.
         :yield: A notification message.
         """
-        self._logger.info(f"Attempts to subscribe to Filer gRPC metadata changes. Starting ts in ns: {since_ns}")
+        self._logger.info(
+            f"Attempts to subscribe to Filer gRPC metadata changes. Starting ts in ns: {since_ns}"
+        )
         request: SubscribeMetadataRequest = SubscribeMetadataRequest()
         request.client_name = self._client_name
         request.since_ns = since_ns
-        request.path_prefixes.append("/buckets/clp-bucket/")
         self._logger.info("Subscribe to Filer gRPC metadata changes.")
         for response in self._stub.SubscribeLocalMetadata(request):
             try:
-                self._logger.info(f"Response:\n {response}")
                 event: EventNotification = response.event_notification
                 new_entry: Entry = event.new_entry
                 if 0 == len(new_entry.name) or 0 != len(event.old_entry.name):
@@ -82,8 +82,10 @@ class SeaweedFSClient(SeaweedFilerServicer):
                 full_path: Path = Path(response.directory) / Path(new_entry.name)
                 if 3 >= len(full_path.parts):
                     continue
-                s3_bucket: str = full_path.parts[2]
-                s3_key: str = str(Path(*full_path.parts[3:]))
+                if "clp-bucket" != full_path.parts[2]:
+                    self._logger.info(full_path.parts[2])
+                    continue
+                s3_full_path: Path = Path("/").joinpath(*full_path.parts[2:])
                 file_size: int = new_entry.attributes.file_size
                 fid_list: List[SeaweedFID] = []
                 if store_fid:
@@ -91,6 +93,6 @@ class SeaweedFSClient(SeaweedFilerServicer):
                         fid_list.append(
                             SeaweedFID(chunk.fid.volume_id, chunk.fid.file_key, chunk.fid.cookie)
                         )
-                yield S3NotificationMessage(s3_bucket, s3_key, file_size, fid_list)
+                yield S3NotificationMessage(s3_full_path, file_size, fid_list)
             except Exception as e:
                 self._logger.error(f"Exception on Filer gRPC response: {e}")

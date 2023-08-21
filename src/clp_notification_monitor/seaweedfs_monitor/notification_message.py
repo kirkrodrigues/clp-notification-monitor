@@ -1,4 +1,4 @@
-from pathlib import PurePath
+from pathlib import Path
 from typing import List
 
 
@@ -23,15 +23,13 @@ class S3NotificationMessage:
     It contains all the necessary metadata that CLP database requires.
     """
 
-    def __init__(self, s3_bucket: str, s3_path: str, file_size: int, fid_list: List[SeaweedFID]):
+    def __init__(self, s3_full_path: Path, file_size: int, fid_list: List[SeaweedFID]):
         """
-        :param s3_bucket: S3 bucket name of the ingested file.
-        :param s3_path: Full path in the S3 bucket.
+        :param s3_full_path: The full path of the file in the S3. It should be
+        in the format of `/BUCKET-NAME/PATH`.
         :param file_size: The size of the ingested file.
         :param fid: A list of SeaweedFS FID that matches all the chunks.
         """
-        self.s3_bucket: str = s3_bucket
-        self.s3_path: str = s3_path
+        self.s3_full_path: Path = s3_full_path
         self.fid_list: List[SeaweedFID] = fid_list
         self.file_size: int = file_size
-        self.s3_full_path: PurePath = PurePath(s3_bucket) / PurePath(s3_path)

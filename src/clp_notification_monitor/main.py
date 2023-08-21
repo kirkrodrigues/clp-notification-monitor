@@ -90,9 +90,9 @@ def main(argv: List[str]) -> int:
         logger.error(f"Failed to initiate seaweedfs client: {e}")
         return -1
 
-    mongodb: pymongo.mongo_client.MongoClient
-    archive_db: pymongo.database.Database
-    jobs_collection: pymongo.collection.Collection
+    mongodb: pymongo.mongo_client.MongoClient  # type: ignore
+    archive_db: pymongo.database.Database  # type: ignore
+    jobs_collection: pymongo.collection.Collection  # type: ignore
     logger.info("Start initiating MongoDB client.")
     try:
         mongodb = pymongo.mongo_client.MongoClient(db_uri)
@@ -126,7 +126,9 @@ def main(argv: List[str]) -> int:
         return -1
 
     try:
-        for notification in seaweedfs_client.s3_file_ingestion_listener(since_ns=0, store_fid=False):
+        for notification in seaweedfs_client.s3_file_ingestion_listener(
+            since_ns=time.time_ns(), store_fid=False
+        ):
             logger.info(f"Ingestion: {notification.s3_full_path}")
             compression_buffer.append(
                 notification.s3_full_path, notification.file_size, datetime.now()

@@ -9,10 +9,6 @@ from typing import Dict, List, Optional
 from pymongo.collection import Collection
 
 
-def __get_current_time_in_ms() -> int:
-    return floor(time.time() * 1000)
-
-
 class CompressionBuffer:
     def __init__(
         self,
@@ -102,13 +98,13 @@ class CompressionBuffer:
         new_job = {
             "input_type": "s3",
             "input_config": {
-                "access_key_id": "",
-                "secret_access_key": "",
+                "access_key_id": "unused",
+                "secret_access_key": "undefined",
                 "buckets": path_prefixes,
             },
             "output_config": {},
             "status": "pending",
-            "submission_timestamp": __get_current_time_in_ms(),
+            "submission_timestamp": floor(time.time() * 1000),
         }
         self._jobs_collection.insert_one(new_job)
         return True

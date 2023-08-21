@@ -77,7 +77,8 @@ def main(argv: List[str]) -> int:
     parser.parse_args(argv[1:])
     args: argparse.Namespace = parser.parse_args(argv[1:])
 
-    logger_init("./logs/", logging.INFO)
+    # logger_init("./logs/", logging.INFO)
+    logger_init(None, logging.INFO)
     endpoint: str = args.seaweed_filer_endpoint
     s3_endpoint: str = args.seaweed_s3_endpoint
     db_uri: str = args.db_uri
@@ -92,12 +93,15 @@ def main(argv: List[str]) -> int:
     mongodb: pymongo.mongo_client.MongoClient
     archive_db: pymongo.database.Database
     jobs_collection: pymongo.collection.Collection
+    logger.info("Start initiating MongoDB client.")
     try:
         mongodb = pymongo.mongo_client.MongoClient(db_uri)
         archive_db = mongodb.get_default_database()
         jobs_collection = archive_db["cjobs"]
     except Exception as e:
         logger.error(f"Failed to initiate MongoDB: {e}")
+        return -1
+    logger.info("MongoDB client successfully initiated.")
 
     compression_buffer: CompressionBuffer
     try:
@@ -110,17 +114,20 @@ def main(argv: List[str]) -> int:
         )
     except Exception as e:
         logger.error(f"Failed to initiate Compression Buffer: {e}")
+        return -1
 
     job_submission_thread: Thread
     try:
         job_submission_thread = Thread(target=submit_compression_jobs, args=(compression_buffer, 1))
+        job_submission_thread.daemon = True
         job_submission_thread.start()
-        job_submission_thread.join()
     except Exception as e:
         logger.error(f"Failed to initiate Job Submission Thread: {e}")
+        return -1
 
     try:
-        for notification in seaweedfs_client.s3_file_ingestion_listener(store_fid=False):
+        for notification in seaweedfs_client.s3_file_ingestion_listener(since_ns=0, store_fid=False):
+            logger.info(f"Ingestion: {notification.s3_full_path}")
             compression_buffer.append(
                 notification.s3_full_path, notification.file_size, datetime.now()
             )

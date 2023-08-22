@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Generator, List
+from typing import Generator, List, Optional
 
 import grpc
 
@@ -49,7 +49,7 @@ class SeaweedFSClient(SeaweedFilerServicer):
         self._channel.close()
 
     def s3_file_ingestion_listener(
-        self, since_ns: int = 0, store_fid: bool = True
+        self, path_prefix: Optional[Path], since_ns: int = 0, store_fid: bool = True
     ) -> Generator[S3NotificationMessage, None, None]:
         """
         Creates a generator to receive Filer S3 file ingestion.
@@ -59,6 +59,7 @@ class SeaweedFSClient(SeaweedFilerServicer):
         changes. It filters the file creation events, and formats the response
         as an instance of S3NotificationMessage with all the data required from
         CLP database.
+        :param path_prefix: Path prefix that will trigger the notifying events.
         :param since_ns: Starting timestamp to listen to notifications.
         :param store_fid: A boolean flag indicating whether the fid of chunks
         should be stored.
@@ -69,6 +70,12 @@ class SeaweedFSClient(SeaweedFilerServicer):
         )
         request: SubscribeMetadataRequest = SubscribeMetadataRequest()
         request.client_name = self._client_name
+        if None is not path_prefix:
+            request.path_prefix = str(path_prefix)
+        else:
+            # If the path prefix is not given, we will only monitor the paths
+            # under "/buckets" since only these files are S3 mapped.
+            request.path_prefix = "/buckets"
         request.since_ns = since_ns
         self._logger.info("Subscribe to Filer gRPC metadata changes.")
         for response in self._stub.SubscribeLocalMetadata(request):
@@ -81,9 +88,6 @@ class SeaweedFSClient(SeaweedFilerServicer):
                     continue
                 full_path: Path = Path(response.directory) / Path(new_entry.name)
                 if 3 >= len(full_path.parts):
-                    continue
-                if "clp-bucket" != full_path.parts[2]:
-                    self._logger.info(full_path.parts[2])
                     continue
                 s3_full_path: Path = Path("/").joinpath(*full_path.parts[2:])
                 file_size: int = new_entry.attributes.file_size

@@ -56,21 +56,23 @@ def logger_init(log_file_path_str: Optional[str], log_level: int) -> None:
 
 
 def submit_compression_jobs_thread_entry(
-    compression_buffer: CompressionBuffer, polling_period: int, exit: Event
+    compression_buffer: CompressionBuffer, max_polling_period: int, exit: Event
 ) -> None:
     """
     The entry of the thread to submit compression jobs from the compression
     buffer.
 
     :param compression_buffer: Compression buffer.
-    :param polling_period: The polling period in seconds.
+    :param max_polling_period: The maximum polling period in seconds.
     :param exit: A fag to indicate the main thread to exit on failures.
     """
     try:
         while True:
             compression_buffer.wait_for_compression_jobs()
+            sleep_time: int = 1
             while False is compression_buffer.try_compress():
-                time.sleep(polling_period)
+                time.sleep(sleep_time)
+                sleep_time = min(sleep_time * 2, max_polling_period)
     except Exception as e:
         logger.error(f"Error on compression buffer: {e}")
         exit.set()
@@ -166,9 +168,11 @@ def main(argv: List[str]) -> int:
 
     exit_event: Event = Event()
     job_submission_thread: Thread
+    max_polling_period: int = 180  # 3 min
     try:
         job_submission_thread = Thread(
-            target=submit_compression_jobs_thread_entry, args=(compression_buffer, 1, exit_event)
+            target=submit_compression_jobs_thread_entry,
+            args=(compression_buffer, max_polling_period, exit_event),
         )
         job_submission_thread.daemon = True
         job_submission_thread.start()

@@ -13,7 +13,7 @@ CLP Log Ingestion Notification Monitor.
 
 ## Start
 
-`python start.py --seaweed-filer-endpoint $URL_TO_SEAWEEDFS_ENDPOINT`
+`python start.py --seaweed-filer-endpoint $SEAWEEDFS_ENDPOINT --seaweed-s3-endpoint $SEAWEEDFS_S3_GATEWAY --filer-notification-path-prefix $NOTIFICATION_PATH_PREFIX --db-uri $DATABASE_URI`
 
 ## Contributing
 

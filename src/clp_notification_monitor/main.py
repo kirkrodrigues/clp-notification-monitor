@@ -122,7 +122,6 @@ def main(argv: List[str]) -> int:
         help="The path prefix that will trigger the filer notification.",
     )
     parser.add_argument("--db-uri", required=True, help="Regional compression DB uri")
-    parser.parse_args(argv[1:])
     args: argparse.Namespace = parser.parse_args(argv[1:])
 
     logger_init("./logs/notification.log", logging.INFO)

@@ -78,7 +78,7 @@ class SeaweedFSClient(SeaweedFilerServicer):
             request.path_prefix = "/buckets"
         request.since_ns = since_ns
         self._logger.info("Subscribe to Filer gRPC metadata changes.")
-        for response in self._stub.SubscribeLocalMetadata(request):
+        for response in self._stub.SubscribeMetadata(request):
             try:
                 event: EventNotification = response.event_notification
                 new_entry: Entry = event.new_entry

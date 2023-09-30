@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Generator, List, Optional
+from typing import Generator, List
 
 import grpc
 
@@ -49,7 +49,7 @@ class SeaweedFSClient(SeaweedFilerServicer):
         self._channel.close()
 
     def s3_file_ingestion_listener(
-        self, path_prefix: Optional[Path], since_ns: int = 0, store_fid: bool = True
+        self, path_prefix: Path = Path("/buckets"), since_ns: int = 0, store_fid: bool = True
     ) -> Generator[S3NotificationMessage, None, None]:
         """
         Creates a generator to receive Filer S3 file ingestion.
@@ -70,14 +70,12 @@ class SeaweedFSClient(SeaweedFilerServicer):
         )
         request: SubscribeMetadataRequest = SubscribeMetadataRequest()
         request.client_name = self._client_name
-        if None is not path_prefix:
-            request.path_prefix = str(path_prefix)
-        else:
-            # If the path prefix is not given, we will only monitor the paths
-            # under "/buckets" since only these files are S3 mapped.
-            request.path_prefix = "/buckets"
+        # TODO: clarify on which path prefixes are not S3 mapped and cannot be
+        # monitored.
+        request.path_prefix = str(path_prefix)
         request.since_ns = since_ns
-        self._logger.info("Subscribe to Filer gRPC metadata changes.")
+        self._logger.info("Subscribed to Filer gRPC metadata changes.")
+
         for response in self._stub.SubscribeMetadata(request):
             try:
                 event: EventNotification = response.event_notification

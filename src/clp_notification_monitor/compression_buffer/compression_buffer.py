@@ -27,10 +27,6 @@ class CompressionBuffer:
     ) -> None:
         self._logger: Logger = logger
 
-        # self.__path_list: List[PurePath] = []
-        # self.__total_buffer_size: int = 0
-        # self.__first_path_timestamp: Optional[datetime] = None
-
         self.__max_buffer_size: int = max_buffer_size
         self.__min_refresh_period: timedelta = timedelta(milliseconds=min_refresh_period)
 
@@ -107,7 +103,7 @@ class CompressionBuffer:
                 continue
 
             # Job triggered by the minimum buffer refresh frequency
-            total_elapsed_time = datetime.now() - buf.first_path_timestamp
+            total_elapsed_time: timedelta = datetime.now() - buf.first_path_timestamp
             if total_elapsed_time > self.__min_refresh_period:
                 self._logger.info(
                     f"Buffer {buf_name} ready for compression (min refresh period exceeded). "
@@ -130,7 +126,6 @@ class CompressionBuffer:
                 self.__lock.release()
                 return []
 
-        # Do not release the lock until all target buffers have been processed.
         top_buffer_name: str = self.__ready_buffers.pop(0)
         target_buffer: SingleBuffer = self.__named_buffers[top_buffer_name]
 
@@ -138,7 +133,8 @@ class CompressionBuffer:
         path_list_to_return = list(target_buffer.path_list)
         target_buffer.clear()
 
-        # If the popped buffer is the last one in the list, release the lock
+        # Do not release the lock until all target buffers have been processed.
+        # The caller is expected to repeatedly call this function for new jobs.
         if 0 == len(self.__ready_buffers):
             self.__lock.release()
 

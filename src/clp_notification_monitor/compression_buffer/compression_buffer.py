@@ -12,7 +12,7 @@ class SingleBuffer:
         self.first_path_timestamp: Optional[datetime] = None
 
     def clear(self) -> None:
-        self.path_list = []
+        self.path_list.clear()
         self.total_buffer_size = 0
         self.first_path_timestamp = None
 
@@ -64,7 +64,7 @@ class CompressionBuffer:
 
             # Add path to buffer
             target_buffer.total_buffer_size += object_size
-            if target_buffer.first_path_timestamp is None:
+            if None is target_buffer.first_path_timestamp:
                 target_buffer.first_path_timestamp = process_timestamp
             target_buffer.path_list.append(s3_path)
 
@@ -77,9 +77,11 @@ class CompressionBuffer:
         """
         with self.__populate_buffer_cv:
             while True:
+                # TODO: come up with a more efficient scanning method when
+                # a large number of buffers is to be expected
                 all_buffers_empty: bool = True
                 for buf in self.__named_buffers.values():
-                    if buf.first_path_timestamp is not None:
+                    if None is not buf.first_path_timestamp:
                         all_buffers_empty = False
                         break
                 if not all_buffers_empty:
@@ -89,7 +91,7 @@ class CompressionBuffer:
     def _get_buffers_ready_for_compression(self) -> List[str]:
         ready_buffers: List[str] = []
         for buf_name, buf in self.__named_buffers.items():
-            if buf.first_path_timestamp is None:
+            if None is buf.first_path_timestamp:
                 continue
 
             # Job triggered by reaching maximum archive size

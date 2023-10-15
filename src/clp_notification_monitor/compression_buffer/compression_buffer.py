@@ -75,6 +75,11 @@ class CompressionBuffer:
         """
         Block the current process until the buffer is populated.
         """
+        # If the lock is being acquired due to unprocessed ready-to-comopress
+        # buffers, skip waiting to avoid deadlock.
+        if len(self.__ready_buffers) > 0:
+            return
+
         with self.__populate_buffer_cv:
             while True:
                 # TODO: come up with a more efficient scanning method when

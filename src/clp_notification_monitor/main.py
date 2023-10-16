@@ -127,6 +127,7 @@ def submit_compression_jobs_thread_entry(
                         "path_prefix_to_remove": str(
                             seaweed_mnt_prefix / filer_notification_path_prefix.relative_to("/")
                         ),
+                        "timestamp_key": "time",
                     }
                 jobs_collection.insert_one(new_job_entry)
                 logger.info("Submitted job to compression database.")

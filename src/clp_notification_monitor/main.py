@@ -134,7 +134,7 @@ def submit_compression_jobs_thread_entry(
 
                 # Add job group index to the input parameters if one is specified
                 if len(path_group) > 0:
-                    new_job_entry["input_config"]["path_group"] = path_group
+                    new_job_entry["input_config"]["index"] = path_group
 
                 jobs_collection.insert_one(new_job_entry)
                 logger.info("Submitted job to compression database.")
